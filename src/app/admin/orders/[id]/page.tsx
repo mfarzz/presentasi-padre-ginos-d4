@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import StatusActions from "@/components/admin/StatusActions";
 import StatusBadge from "@/components/admin/StatusBadge";
-import { getDayOrderCount, getOrder, getPizzaSoldOnDay } from "@/lib/admin-data";
+import {
+  getDayOrderCount,
+  getOrder,
+  getPizzaSoldOnDay,
+} from "@/lib/admin-data";
 import { getCurrentUser } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
 import { can } from "@/lib/permissions";
@@ -14,16 +18,24 @@ export default async function OrderDetailPage({
   const orderId = Number(id);
   if (!Number.isInteger(orderId)) notFound();
 
+  console.time("getOrder");
   const order = await getOrder(orderId); // checks "admin:view" inside
+  console.timeEnd("getOrder");
   if (!order) notFound();
+  console.time("getCurrentUser");
   const user = await getCurrentUser();
+  console.timeEnd("getCurrentUser");
 
   // Context for staff: how busy was that day, how popular is each pizza
+  console.time("getDayOrderCount");
   const dayOrderCount = await getDayOrderCount(order.date);
+  console.timeEnd("getDayOrderCount");
   const soldThatDay: number[] = [];
+  console.time("soldThatDay");
   for (const line of order.lines) {
     soldThatDay.push(await getPizzaSoldOnDay(line.pizzaId, order.date));
   }
+  console.timeEnd("soldThatDay");
 
   return (
     <section className="max-w-3xl">
@@ -41,7 +53,9 @@ export default async function OrderDetailPage({
         </span>
       </p>
       {/* A UI hint only: the real check is inside updateOrderStatusAction */}
-      {can(user, "orders:update") && <StatusActions orderId={order.id} status={order.status} />}
+      {can(user, "orders:update") && (
+        <StatusActions orderId={order.id} status={order.status} />
+      )}
 
       <table className="mt-6 w-full overflow-hidden rounded-xl bg-white text-left text-sm shadow-sm">
         <thead className="bg-stone-50 text-xs uppercase text-ink/60">
@@ -58,7 +72,10 @@ export default async function OrderDetailPage({
             <tr key={i} className="border-t border-black/5">
               <td className="px-4 py-2">
                 {can(user, "products:manage") ? (
-                  <Link href={`/admin/products/${line.pizzaId}`} className="hover:underline">
+                  <Link
+                    href={`/admin/products/${line.pizzaId}`}
+                    className="hover:underline"
+                  >
                     {line.name}
                   </Link>
                 ) : (
@@ -67,7 +84,9 @@ export default async function OrderDetailPage({
               </td>
               <td className="px-4 py-2">{line.size}</td>
               <td className="px-4 py-2 text-right">{line.quantity}</td>
-              <td className="px-4 py-2 text-right">{formatPrice(line.price)}</td>
+              <td className="px-4 py-2 text-right">
+                {formatPrice(line.price)}
+              </td>
               <td className="px-4 py-2 text-right" data-testid="sold-that-day">
                 {soldThatDay[i]}
               </td>
@@ -75,7 +94,10 @@ export default async function OrderDetailPage({
           ))}
         </tbody>
       </table>
-      <p className="mt-4 text-right text-lg font-bold" data-testid="order-total">
+      <p
+        className="mt-4 text-right text-lg font-bold"
+        data-testid="order-total"
+      >
         Total {formatPrice(order.total)}
       </p>
     </section>

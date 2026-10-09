@@ -5,11 +5,12 @@ import StatusBadge from "@/components/admin/StatusBadge";
 import {
   getDayOrderCount,
   getOrder,
-  getPizzaSoldOnDay,
+  getPizzasSoldOnDay,
 } from "@/lib/admin-data";
 import { getCurrentUser } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { Suspense } from "react";
 
 export default async function OrderDetailPage({
   params,
@@ -27,14 +28,9 @@ export default async function OrderDetailPage({
   console.timeEnd("getCurrentUser");
 
   // Context for staff: how busy was that day, how popular is each pizza
-  console.time("getDayOrderCount");
-  const dayOrderCount = await getDayOrderCount(order.date);
-  console.timeEnd("getDayOrderCount");
-  const soldThatDay: number[] = [];
+  const pizzaIds = order.lines.map((l) => l.pizzaId);
   console.time("soldThatDay");
-  for (const line of order.lines) {
-    soldThatDay.push(await getPizzaSoldOnDay(line.pizzaId, order.date));
-  }
+  const pizzasSoldDay = await getPizzasSoldOnDay(pizzaIds, order.date);
   console.timeEnd("soldThatDay");
 
   return (
@@ -46,7 +42,11 @@ export default async function OrderDetailPage({
       <p className="mt-1 flex items-center gap-3 text-ink/70">
         {order.date} {order.time}
         <span className="text-sm" data-testid="day-order-count">
-          · {dayOrderCount} order hari itu
+          ·{" "}
+          <Suspense fallback="...">
+            <OrderThatDay date={order.date} />
+          </Suspense>{" "}
+          order hari itu
         </span>
         <span data-testid="order-status">
           <StatusBadge status={order.status} />
@@ -88,7 +88,7 @@ export default async function OrderDetailPage({
                 {formatPrice(line.price)}
               </td>
               <td className="px-4 py-2 text-right" data-testid="sold-that-day">
-                {soldThatDay[i]}
+                {pizzasSoldDay[line.pizzaId]}
               </td>
             </tr>
           ))}
@@ -102,4 +102,10 @@ export default async function OrderDetailPage({
       </p>
     </section>
   );
+}
+async function OrderThatDay({ date }: { date: string }) {
+  console.time("order count");
+  const dayOrderCount = await getDayOrderCount(date);
+  console.timeEnd("order count");
+  return dayOrderCount;
 }

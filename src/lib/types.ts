@@ -31,3 +31,9 @@ export interface Profile {
   phone: string | null;
   address: string | null;
 }
+
+export type TrendPoint = {
+  date: string;
+  revenue: number;
+  orders: number;
+};

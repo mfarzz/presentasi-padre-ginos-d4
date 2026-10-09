@@ -1,5 +1,6 @@
 "use client";
-
+import { formatPrice } from "@/lib/format"
+import { TrendPoint } from "@/lib/types"
 import {
   CartesianGrid,
   Line,
@@ -10,14 +11,7 @@ import {
   YAxis,
 } from "recharts";
 
-type Point = { date: string; revenue: number; orders: number };
-
-const usd = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
-
-export default function TrendChart({ trend }: { trend: Point[] }) {
+export default function TrendChart({ trend }: { trend: TrendPoint[] }) {
   return (
     <div className="mt-4 h-64" data-testid="trend-chart">
       <ResponsiveContainer width="100%" height="100%">
@@ -25,7 +19,7 @@ export default function TrendChart({ trend }: { trend: Point[] }) {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip formatter={(value) => usd.format(Number(value))} />
+          <Tooltip formatter={(value) => formatPrice(Number(value))} />
           <Line
             type="monotone"
             dataKey="revenue"

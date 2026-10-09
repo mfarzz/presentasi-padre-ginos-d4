@@ -2,19 +2,14 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-
-type Point = {
-  date: string;
-  revenue: number;
-  orders: number;
-};
+import { TrendPoint } from "@/lib/types"; 
 
 const TrendChart = dynamic(() => import("./TrendChart"), {
   loading: () => <p className="mt-4 text-sm text-ink/60">Memuat grafik…</p>,
   ssr: false,
 });
 
-export default function TrendChartToggle({ trend }: { trend: Point[] }) {
+export default function TrendChartToggle({ trend }: { trend: TrendPoint[] }) {
   const [showChart, setShowChart] = useState(false);
 
   return (

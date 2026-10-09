@@ -1,11 +1,9 @@
 import TrendChartToggle from "./TrendChartToggle"
-
-type Point = { date: string; revenue: number; orders: number };
-
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+import { TrendPoint } from "@/lib/types"
+import { formatPrice } from "@/lib/format"
 
 // Sales trend for the overview: totals, plus a chart on demand
-export default function SalesTrendCard({ trend }: { trend: Point[] }) {
+export default function SalesTrendCard({ trend }: { trend: TrendPoint[] }) {
   const total = trend.reduce((sum, p) => sum + p.revenue, 0);
   const best = trend.reduce((a, b) => (b.revenue > a.revenue ? b : a), trend[0]);
 
@@ -14,17 +12,17 @@ export default function SalesTrendCard({ trend }: { trend: Point[] }) {
       <h2 className="text-sm font-semibold uppercase text-ink/60">Tren 30 hari terakhir</h2>
       <div className="mt-3 flex flex-wrap gap-8">
         <p>
-          <span className="block text-3xl font-black">{usd.format(total)}</span>
+          <span className="block text-3xl font-black">{formatPrice(total)}</span>
           <span className="text-ink/70">total pendapatan</span>
         </p>
         <p>
-          <span className="block text-3xl font-black">{usd.format(total / trend.length)}</span>
+          <span className="block text-3xl font-black">{formatPrice(total / trend.length)}</span>
           <span className="text-ink/70">rata-rata per hari</span>
         </p>
         {best && (
           <p>
             <span className="block text-3xl font-black">{best.date}</span>
-            <span className="text-ink/70">hari terbaik ({usd.format(best.revenue)})</span>
+            <span className="text-ink/70">hari terbaik ({formatPrice(best.revenue)})</span>
           </p>
         )}
       </div>

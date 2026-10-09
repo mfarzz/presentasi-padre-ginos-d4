@@ -5,7 +5,7 @@ import StatusBadge from "@/components/admin/StatusBadge";
 import {
   getDayOrderCount,
   getOrder,
-  getPizzasSoldOnDay,
+  getPizzaSoldOnDay,
 } from "@/lib/admin-data";
 import { getCurrentUser } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
@@ -27,10 +27,10 @@ export default async function OrderDetailPage({
   const user = await getCurrentUser();
   console.timeEnd("getCurrentUser");
 
-  // Context for staff: how busy was that day, how popular is each pizza
-  const pizzaIds = order.lines.map((l) => l.pizzaId);
   console.time("soldThatDay");
-  const pizzasSoldDay = await getPizzasSoldOnDay(pizzaIds, order.date);
+  const soldThatDay = await Promise.all(
+    order.lines.map((line) => getPizzaSoldOnDay(line.pizzaId, order.date)),
+  );
   console.timeEnd("soldThatDay");
 
   return (
@@ -88,7 +88,7 @@ export default async function OrderDetailPage({
                 {formatPrice(line.price)}
               </td>
               <td className="px-4 py-2 text-right" data-testid="sold-that-day">
-                {pizzasSoldDay[line.pizzaId]}
+                {soldThatDay[i]}
               </td>
             </tr>
           ))}
